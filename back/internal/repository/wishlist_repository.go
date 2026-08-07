@@ -141,7 +141,7 @@ func (r *wishlistRepository) GetOptions(ctx context.Context, wishlistID string) 
 		}
 		categories = append(categories, cat)
 	}
-	return categories, nil
+	return categories, rows.Err()
 }
 
 func (r *wishlistRepository) Delete(ctx context.Context, id string) error {

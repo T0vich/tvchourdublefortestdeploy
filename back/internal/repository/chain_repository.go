@@ -115,7 +115,7 @@ func (r *chainRepository) GetByProductID(ctx context.Context, productID string) 
 		}
 		chains = append(chains, chain)
 	}
-	return chains, nil
+	return chains, rows.Err()
 }
 
 func (r *chainRepository) GetFullChain(ctx context.Context, chainID string) ([]domain.Chain, error) {
@@ -160,7 +160,7 @@ func (r *chainRepository) GetFullChain(ctx context.Context, chainID string) ([]d
 		}
 		chains = append(chains, chain)
 	}
-	return chains, nil
+	return chains, rows.Err()
 }
 
 func (r *chainRepository) UpdateStatus(ctx context.Context, id string, status domain.ChainStatus) error {

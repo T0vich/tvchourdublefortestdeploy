@@ -160,5 +160,5 @@ func (r *customerRepository) List(ctx context.Context, offset, limit int) ([]dom
 		customers = append(customers, customer)
 	}
 
-	return customers, nil
+	return customers, rows.Err()
 }

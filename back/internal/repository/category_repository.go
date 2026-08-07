@@ -92,7 +92,7 @@ func (r *categoryRepository) GetSubcategories(ctx context.Context, parentID stri
 		}
 		categories = append(categories, cat)
 	}
-	return categories, nil
+	return categories, rows.Err()
 }
 
 func (r *categoryRepository) Update(ctx context.Context, id string, category *domain.Category) (*domain.Category, error) {
@@ -224,5 +224,5 @@ func (r *categoryRepository) List(ctx context.Context) ([]domain.Category, error
 		}
 		categories = append(categories, cat)
 	}
-	return categories, nil
+	return categories, rows.Err()
 }

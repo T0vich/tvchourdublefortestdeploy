@@ -106,7 +106,7 @@ func (r *reviewRepository) GetByCustomerID(ctx context.Context, customerID strin
 		reviews = append(reviews, review)
 	}
 
-	return reviews, nil
+	return reviews, rows.Err()
 }
 
 func (r *reviewRepository) GetAverageRating(ctx context.Context, customerID string) (float64, error) {

@@ -3,12 +3,15 @@ package httpapi
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"trade-chain/internal/service"
 )
 
 type ErrorResponse struct {
 	Error string `json:"error"`
+	// Fields заполняется только для ошибок валидации: "поле -> причина".
+	Fields map[string]string `json:"fields,omitempty"`
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
@@ -18,18 +21,30 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func writeError(w http.ResponseWriter, err error) {
-	status := http.StatusInternalServerError
 	switch {
 	case errors.Is(err, service.ErrInvalidInput):
-		status = http.StatusBadRequest
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 	case errors.Is(err, service.ErrNotFound):
-		status = http.StatusNotFound
+		writeJSON(w, http.StatusNotFound, ErrorResponse{Error: err.Error()})
 	case errors.Is(err, service.ErrConflict):
-		status = http.StatusConflict
+		writeJSON(w, http.StatusConflict, ErrorResponse{Error: err.Error()})
 	case errors.Is(err, service.ErrForbidden):
-		status = http.StatusForbidden
+		writeJSON(w, http.StatusForbidden, ErrorResponse{Error: err.Error()})
+	default:
+		// Незнакомая ошибка — это почти всегда ошибка базы или драйвера.
+		// Её текст содержит имена таблиц, колонок и фрагменты запроса,
+		// поэтому наружу уходит нейтральное сообщение, а подробности в лог.
+		log.Printf("необработанная ошибка: %v", err)
+		writeJSON(w, http.StatusInternalServerError, ErrorResponse{Error: "внутренняя ошибка сервера"})
 	}
-	writeJSON(w, status, ErrorResponse{Error: err.Error()})
+}
+
+// writeValidationError отдаёт 422 с разбором по полям.
+func writeValidationError(w http.ResponseWriter, fields map[string]string) {
+	writeJSON(w, http.StatusUnprocessableEntity, ErrorResponse{
+		Error:  "переданные данные не прошли проверку",
+		Fields: fields,
+	})
 }
 
 func decodeJSON(r *http.Request, dst any) error {

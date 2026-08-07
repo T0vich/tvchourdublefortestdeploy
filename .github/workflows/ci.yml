@@ -64,7 +64,7 @@ jobs:
 
       - name: Build backend
         working-directory: back
-        run: go build ./cmd/app
+        run: go build ./cmd/server
 
   docker:
     name: Docker build

@@ -2,6 +2,10 @@
 -- RTX4080 -> Ноутбук -> Велосипед -> Телефон
 -- Алгоритм поиска стартует с желаемого товара
 -- и идёт к товару пользователя через wishlist владельцев
+--
+-- Пароль всех четырёх демо-пользователей: demo1234
+-- В password_hash лежит именно bcrypt-хеш: /auth/login сверяет пароль через
+-- bcrypt.CompareHashAndPassword, и с произвольной строкой вход невозможен.
 -- ============================================================
 TRUNCATE TABLE customers CASCADE;
 DO $$
@@ -29,19 +33,19 @@ BEGIN
 
 -- Пользователи
 INSERT INTO customers(email,password_hash)
-VALUES ('user1@test.com','1')
+VALUES ('user1@test.com','$2a$10$d1l2vg5i67/BH59rklxg/uuTkM4dUsgHmw8EZXBkGTJYK9ixKySna')
 RETURNING customer_id INTO cust1;
 
 INSERT INTO customers(email,password_hash)
-VALUES ('user2@test.com','1')
+VALUES ('user2@test.com','$2a$10$d1l2vg5i67/BH59rklxg/uuTkM4dUsgHmw8EZXBkGTJYK9ixKySna')
 RETURNING customer_id INTO cust2;
 
 INSERT INTO customers(email,password_hash)
-VALUES ('user3@test.com','1')
+VALUES ('user3@test.com','$2a$10$d1l2vg5i67/BH59rklxg/uuTkM4dUsgHmw8EZXBkGTJYK9ixKySna')
 RETURNING customer_id INTO cust3;
 
 INSERT INTO customers(email,password_hash)
-VALUES ('user4@test.com','1')
+VALUES ('user4@test.com','$2a$10$d1l2vg5i67/BH59rklxg/uuTkM4dUsgHmw8EZXBkGTJYK9ixKySna')
 RETURNING customer_id INTO cust4;
 
 
@@ -65,25 +69,25 @@ RETURNING category_id INTO cat_gpu;
 
 -- Товары пользователей
 -- User1 имеет телефон
-INSERT INTO products(customer_id,category_id,name,description)
+INSERT INTO products(customer_id,category_id,title,description)
 VALUES
 (cust1,cat_phone,'iPhone 15','Телефон пользователя')
 RETURNING product_id INTO prod_phone;
 
 -- User2 имеет велосипед
-INSERT INTO products(customer_id,category_id,name,description)
+INSERT INTO products(customer_id,category_id,title,description)
 VALUES
 (cust2,cat_bike,'GT Avalanche','Велосипед пользователя')
 RETURNING product_id INTO prod_bike;
 
 -- User3 имеет ноутбук
-INSERT INTO products(customer_id,category_id,name,description)
+INSERT INTO products(customer_id,category_id,title,description)
 VALUES
 (cust3,cat_laptop,'MacBook Pro','Ноутбук пользователя')
 RETURNING product_id INTO prod_laptop;
 
 -- User4 имеет видеокарту
-INSERT INTO products(customer_id,category_id,name,description)
+INSERT INTO products(customer_id,category_id,title,description)
 VALUES
 (cust4,cat_gpu,'RTX 4080','Видеокарта пользователя')
 RETURNING product_id INTO prod_gpu;

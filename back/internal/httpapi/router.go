@@ -3,7 +3,6 @@ package httpapi
 import (
 	"net/http"
 	"time"
-	"trade-chain/internal/auth"
 	"trade-chain/internal/search"
 	"trade-chain/internal/service"
 
@@ -33,6 +32,7 @@ func NewRouter(d Dependencies) http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(15 * time.Second))
+	r.Use(cors(allowedOrigins()))
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
@@ -44,37 +44,34 @@ func NewRouter(d Dependencies) http.Handler {
 		httpSwagger.URL("/swagger/doc.json"),
 	))
 
-	// Публичные маршруты (без аутентификации)
+	// Требование авторизации навешивается не на всю группу, а на каждый
+	// маршрут отдельно (см. r.With(auth.AuthMiddleware) в mount-функциях):
+	// каталог, карточки товаров и публичные профили должны открываться
+	// без токена, иначе неавторизованный гость видит только 401.
 	r.Route("/api/v1", func(r chi.Router) {
-		// Авторизация
 		mountAuthRoutes(r, d.Customers)
 
-		// Защищённые маршруты
-		r.Group(func(r chi.Router) {
-			r.Use(auth.AuthMiddleware)
-
-			if d.Customers != nil {
-				mountCustomerRoutes(r, d.Customers)
-			}
-			if d.Products != nil {
-				mountProductRoutes(r, d.Products)
-			}
-			if d.Chains != nil {
-				mountChainRoutes(r, d.Chains)
-			}
-			if d.Reviews != nil {
-				mountReviewRoutes(r, d.Reviews)
-			}
-			if d.Categories != nil {
-				mountCategoryRoutes(r, d.Categories)
-			}
-			if d.Wishlists != nil {
-				mountWishlistRoutes(r, d.Wishlists)
-			}
-			if d.Search != nil {
-				mountSearchRoutes(r, d.Search)
-			}
-		})
+		if d.Customers != nil {
+			mountCustomerRoutes(r, d.Customers)
+		}
+		if d.Products != nil {
+			mountProductRoutes(r, d.Products)
+		}
+		if d.Chains != nil {
+			mountChainRoutes(r, d.Chains)
+		}
+		if d.Reviews != nil {
+			mountReviewRoutes(r, d.Reviews)
+		}
+		if d.Categories != nil {
+			mountCategoryRoutes(r, d.Categories)
+		}
+		if d.Wishlists != nil {
+			mountWishlistRoutes(r, d.Wishlists)
+		}
+		if d.Search != nil {
+			mountSearchRoutes(r, d.Search)
+		}
 	})
 
 	return r

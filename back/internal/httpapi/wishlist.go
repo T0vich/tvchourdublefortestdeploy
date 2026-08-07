@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"net/http"
+	"trade-chain/internal/auth"
 	"trade-chain/internal/domain"
 	"trade-chain/internal/service"
 
@@ -17,13 +18,17 @@ type OptionRequest struct {
 func mountWishlistRoutes(r chi.Router, s service.WishlistService) {
 	h := wishlistHandler{s}
 	r.Route("/wishlists", func(r chi.Router) {
-		r.Post("/", h.create)
+		// «Что хочу взамен» показывается прямо в карточке товара,
+		// значит должно читаться без токена.
 		r.Get("/{id}", h.get)
-		r.Delete("/{id}", h.delete)
 		r.Get("/{id}/options", h.options)
-		r.Post("/{id}/options", h.addOption)
-		r.Delete("/{id}/options/{categoryID}", h.removeOption)
 		r.Get("/by-product/{productID}", h.byProduct)
+
+		protected := r.With(auth.AuthMiddleware)
+		protected.Post("/", h.create)
+		protected.Delete("/{id}", h.delete)
+		protected.Post("/{id}/options", h.addOption)
+		protected.Delete("/{id}/options/{categoryID}", h.removeOption)
 	})
 }
 

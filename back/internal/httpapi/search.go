@@ -16,7 +16,11 @@ type searchHandler struct {
 
 func mountSearchRoutes(r chi.Router, s *search.SearchService) {
 	h := searchHandler{s}
+	// Поиск цепочки строится от товаров текущего пользователя,
+	// поэтому без токена он бессмысленен.
 	r.Route("/search", func(r chi.Router) {
+		r.Use(auth.AuthMiddleware)
+
 		r.Get("/chain", h.findChain)
 	})
 }

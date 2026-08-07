@@ -17,7 +17,11 @@ type ChainStatusRequest struct {
 
 func mountChainRoutes(r chi.Router, s service.ChainService) {
 	h := chainHandler{s}
+	// Цепочки — это сделки между конкретными участниками, поэтому весь
+	// раздел закрыт токеном целиком, включая чтение.
 	r.Route("/chains", func(r chi.Router) {
+		r.Use(auth.AuthMiddleware)
+
 		r.Post("/", h.create)
 		r.Get("/{id}", h.get)
 		r.Get("/{id}/full", h.full)

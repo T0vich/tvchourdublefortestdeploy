@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"net/http"
+	"trade-chain/internal/auth"
 	"trade-chain/internal/domain"
 	"trade-chain/internal/service"
 
@@ -13,12 +14,15 @@ type categoryHandler struct{ s service.CategoryService }
 func mountCategoryRoutes(r chi.Router, s service.CategoryService) {
 	h := categoryHandler{s}
 	r.Route("/categories", func(r chi.Router) {
-		r.Post("/", h.create)
+		// Справочник категорий нужен витрине до входа в аккаунт.
 		r.Get("/", h.list)
 		r.Get("/{id}", h.get)
 		r.Get("/{id}/subcategories", h.subcategories)
-		r.Put("/{id}", h.update)
-		r.Delete("/{id}", h.delete)
+
+		protected := r.With(auth.AuthMiddleware)
+		protected.Post("/", h.create)
+		protected.Put("/{id}", h.update)
+		protected.Delete("/{id}", h.delete)
 	})
 }
 

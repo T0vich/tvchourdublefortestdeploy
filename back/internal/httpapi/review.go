@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"net/http"
+	"trade-chain/internal/auth"
 	"trade-chain/internal/domain"
 	"trade-chain/internal/service"
 
@@ -13,11 +14,14 @@ type reviewHandler struct{ s service.ReviewService }
 func mountReviewRoutes(r chi.Router, s service.ReviewService) {
 	h := reviewHandler{s}
 	r.Route("/reviews", func(r chi.Router) {
-		r.Post("/", h.create)
+		// Отзывы и рейтинг — часть публичного профиля продавца.
 		r.Get("/{id}", h.get)
-		r.Delete("/{id}", h.delete)
 		r.Get("/by-customer/{customerID}", h.byCustomer)
 		r.Get("/by-customer/{customerID}/rating", h.rating)
+
+		protected := r.With(auth.AuthMiddleware)
+		protected.Post("/", h.create)
+		protected.Delete("/{id}", h.delete)
 	})
 }
 

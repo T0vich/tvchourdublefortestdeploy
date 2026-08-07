@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"net/http"
+	"trade-chain/internal/auth"
 	"trade-chain/internal/domain"
 	"trade-chain/internal/service"
 
@@ -13,13 +14,16 @@ type productHandler struct{ s service.ProductService }
 func mountProductRoutes(r chi.Router, s service.ProductService) {
 	h := productHandler{s}
 	r.Route("/products", func(r chi.Router) {
-		r.Post("/", h.create)
+		// Каталог и карточки открыты без токена: это витрина.
 		r.Get("/", h.list)
 		r.Get("/search", h.search)
 		r.Get("/{id}", h.get)
-		r.Patch("/{id}", h.update)
-		r.Delete("/{id}", h.delete)
 		r.Get("/by-customer/{customerID}", h.byCustomer)
+
+		protected := r.With(auth.AuthMiddleware)
+		protected.Post("/", h.create)
+		protected.Patch("/{id}", h.update)
+		protected.Delete("/{id}", h.delete)
 	})
 }
 

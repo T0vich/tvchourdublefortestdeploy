@@ -1,0 +1,26 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    width: min(100%, 360px);
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.error,
+.success {
+    font-size: var(--text-sm-font-size);
+    line-height: var(--text-sm-line-height);
+}
+
+.error {
+    color: var(--accent-danger);
+}
+
+.success {
+    color: var(--accent-success);
+}

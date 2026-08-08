@@ -25,4 +25,5 @@ export const setUserLocalStorage = (userData: TUserProfile) => {
 
 export const removeUserLocalStorage = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
 };

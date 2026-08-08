@@ -1,1 +1,2 @@
-export * from './PageTitleContext.tsx';
+export { PageTitleProvider } from './PageTitleProvider';
+export { usePageTitle } from './usePageTitle';

@@ -11,6 +11,7 @@ type TError = {
 type TInputProps = {
     label?: string;
     name?: string;
+    type?: 'text' | 'email' | 'password';
     value: string;
     placeholder?: string;
     onChange?: (value: string) => void;
@@ -22,6 +23,7 @@ type TInputProps = {
 export const Input = forwardRef<HTMLInputElement, TInputProps>(({
                                                                     label,
                                                                     name,
+                                                                    type = 'text',
                                                                     value = "",
                                                                     placeholder,
                                                                     onChange,
@@ -44,8 +46,9 @@ export const Input = forwardRef<HTMLInputElement, TInputProps>(({
         <Label label={label} error={error} disabled={disabled}>
             <input
                 className={inputClasses}
-                defaultValue={value}
+                value={value}
                 name={name}
+                type={type}
                 placeholder={placeholder}
                 disabled={disabled || loading}
                 onChange={handleChange}

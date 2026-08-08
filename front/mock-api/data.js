@@ -173,6 +173,73 @@ const categories = [
     { category_id: 'console-games', name: 'Игры для приставок' },
 ];
 
+const customers = [
+    { customer_id: 'user-pskov-01', email: 'alexey@example.com', password: 'password123', is_active: true },
+    { customer_id: 'user-pskov-02', email: 'maria@example.com', password: 'password123', is_active: true },
+    { customer_id: 'user-pskov-03', email: 'ivan@example.com', password: 'password123', is_active: true },
+    { customer_id: 'user-pskov-04', email: 'olga@example.com', password: 'password123', is_active: true },
+];
+
+const chains = [
+    {
+        chain_id: 'chain-pskov-01',
+        from_product_id: 'avito-gpu-rtx-3060',
+        to_product_id: 'avito-game-ps5-spider-man',
+        initiator_id: 'user-pskov-01',
+        status: 'active',
+        message: 'Готов обменять видеокарту на комплект игр для PS5.',
+        created_at: '2026-08-06T19:00:00Z',
+        updated_at: '2026-08-06T19:00:00Z',
+    },
+    {
+        chain_id: 'chain-pskov-02',
+        from_product_id: 'avito-game-ps4-rdr2',
+        to_product_id: 'avito-gpu-rx-6600',
+        initiator_id: 'user-pskov-04',
+        status: 'pending',
+        message: 'Рассмотрю обмен с доплатой.',
+        created_at: '2026-08-05T13:00:00Z',
+        updated_at: '2026-08-05T13:00:00Z',
+    },
+];
+
+const reviews = [
+    {
+        review_id: 'review-pskov-01',
+        from_customer_id: 'user-pskov-02',
+        to_customer_id: 'user-pskov-01',
+        product_id: 'avito-gpu-rtx-3060',
+        rating: 5,
+        comment: 'Быстро договорились, товар соответствует описанию.',
+        created_at: '2026-08-01T10:00:00Z',
+        updated_at: '2026-08-01T10:00:00Z',
+    },
+    {
+        review_id: 'review-pskov-02',
+        from_customer_id: 'user-pskov-03',
+        to_customer_id: 'user-pskov-01',
+        product_id: 'avito-gpu-rtx-3060',
+        rating: 4,
+        comment: 'Всё хорошо, встретились в удобном месте.',
+        created_at: '2026-08-02T14:00:00Z',
+        updated_at: '2026-08-02T14:00:00Z',
+    },
+];
+
+const wishlists = [
+    {
+        wishlist_id: 'wishlist-pskov-01',
+        product_id: 'avito-game-ps5-spider-man',
+        name: 'Что хочу получить за видеокарту',
+        created_at: '2026-08-06T18:50:00Z',
+        updated_at: '2026-08-06T18:50:00Z',
+    },
+];
+
+const wishlistOptions = {
+    'wishlist-pskov-01': ['console-games'],
+};
+
 const mockNow = '2026-08-07T00:00:00Z';
 
 products.splice(0, products.length, ...products.map((product) => ({
@@ -191,4 +258,10 @@ categories.forEach((category) => {
     category.updated_at = mockNow;
 });
 
-export { categories, products };
+customers.forEach((customer) => {
+    const now = mockNow;
+    customer.created_at = now;
+    customer.updated_at = now;
+});
+
+export { categories, customers, products, chains, reviews, wishlists, wishlistOptions };

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"trade-chain/internal/domain"
 	"trade-chain/internal/repository"
@@ -210,6 +211,8 @@ func normalizeError(err error) error {
 	if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrNotFound) {
 		return err
 	}
-	// Все остальные ошибки считаем внутренними
-	return ErrInternal
+	// Все остальные ошибки считаем внутренними. Оригинал оборачивается, а не
+	// отбрасывается: errors.Is(err, ErrInternal) продолжает работать, но
+	// причина доезжает до лога — без неё отладка 500-х сводится к угадыванию.
+	return fmt.Errorf("%w: %v", ErrInternal, err)
 }

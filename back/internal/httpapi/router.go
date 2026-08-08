@@ -33,6 +33,7 @@ func NewRouter(d Dependencies) http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(15 * time.Second))
 	r.Use(cors(allowedOrigins()))
+	r.Use(requireUTF8Query)
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) {

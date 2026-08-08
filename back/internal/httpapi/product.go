@@ -45,8 +45,7 @@ func (h productHandler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var v domain.CreateProductDTO
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 
@@ -102,8 +101,7 @@ func (h productHandler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var v domain.UpdateProductDTO
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	out, e := h.s.Update(r.Context(), chi.URLParam(r, "id"), &v)

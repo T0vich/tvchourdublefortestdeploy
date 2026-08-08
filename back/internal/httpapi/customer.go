@@ -40,8 +40,7 @@ func mountCustomerRoutes(r chi.Router, s service.CustomerService) {
 // @Router /customers [post]
 func (h customerHandler) create(w http.ResponseWriter, r *http.Request) {
 	var v domain.CreateCustomerDTO
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	out, e := h.s.Create(r.Context(), &v)
@@ -92,8 +91,7 @@ func (h customerHandler) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var v domain.UpdateCustomerDTO
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	out, e := h.s.Update(r.Context(), chi.URLParam(r, "id"), &v)

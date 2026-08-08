@@ -3,6 +3,7 @@ import type {
     TLoginPayload,
     TRegisterPayload,
     TAuthResponse,
+    TUser,
 } from '../types';
 import { getApiBaseUrl } from '@/shared/api';
 
@@ -16,10 +17,18 @@ export const userApi = createApi({
         registerUser: builder.mutation<TAuthResponse, TRegisterPayload>({
             query: (body) => ({url: '/auth/register', method: 'POST', body}),
         }),
+        // Профиль владельца токена: заодно проверка, что сохранённый токен ещё жив.
+        getMe: builder.query<TUser, void>({
+            query: () => ({
+                url: '/auth/me',
+                headers: {Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`},
+            }),
+        }),
     }),
 });
 
 export const {
     useLoginUserMutation,
     useRegisterUserMutation,
+    useGetMeQuery,
 } = userApi;

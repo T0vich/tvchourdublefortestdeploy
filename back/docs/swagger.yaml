@@ -196,6 +196,13 @@ definitions:
       wishlist_id:
         type: string
     type: object
+  httpapi.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/domain.Customer'
+    type: object
   httpapi.ChainStatusRequest:
     properties:
       status:
@@ -223,13 +230,6 @@ definitions:
       category_id:
         type: string
     type: object
-  httpapi.TokenResponse:
-    properties:
-      customer_id:
-        type: string
-      token:
-        type: string
-    type: object
 info:
   contact: {}
   description: API для обмена товарами
@@ -254,7 +254,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/httpapi.TokenResponse'
+            $ref: '#/definitions/httpapi.AuthResponse'
         "400":
           description: Некорректное тело запроса
           schema:
@@ -268,6 +268,29 @@ paths:
           schema:
             $ref: '#/definitions/httpapi.ErrorResponse'
       summary: Login user
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Профиль владельца токена
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Customer'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Current user
       tags:
       - auth
   /auth/register:
@@ -289,7 +312,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/httpapi.TokenResponse'
+            $ref: '#/definitions/httpapi.AuthResponse'
         "400":
           description: Некорректные данные
           schema:

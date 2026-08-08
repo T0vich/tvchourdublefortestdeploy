@@ -50,8 +50,7 @@ func mountWishlistRoutes(r chi.Router, s service.WishlistService, products servi
 // @Router /wishlists [post]
 func (h wishlistHandler) create(w http.ResponseWriter, r *http.Request) {
 	var v domain.Wishlist
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 
@@ -172,8 +171,7 @@ func (h wishlistHandler) addOption(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var v OptionRequest
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	if e := h.s.AddCategoryOption(r.Context(), chi.URLParam(r, "id"), v.CategoryID); e != nil {

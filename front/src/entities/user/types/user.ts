@@ -22,6 +22,6 @@ export type TLoginPayload = {
  * поэтому отдельный вход после неё не нужен.
  */
 export type TAuthResponse = {
+    user: TUser;
     token: string;
-    customer_id: string;
 };

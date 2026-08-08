@@ -44,15 +44,13 @@ func mountChainRoutes(r chi.Router, s service.ChainService) {
 // @Failure 500 {object} ErrorResponse
 // @Router /chains [post]
 func (h chainHandler) create(w http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserIDFromContext(r.Context())
+	userID, ok := actor(w, r)
 	if !ok {
-		writeError(w, service.ErrForbidden)
 		return
 	}
 
 	var v domain.Chain
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	v.InitiatorID = userID
@@ -142,15 +140,13 @@ func (h chainHandler) byProduct(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /chains/{id}/status [patch]
 func (h chainHandler) status(w http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserIDFromContext(r.Context())
+	userID, ok := actor(w, r)
 	if !ok {
-		writeError(w, service.ErrForbidden)
 		return
 	}
 
 	var req ChainStatusRequest
-	if decodeJSON(r, &req) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &req) {
 		return
 	}
 	if err := h.s.UpdateStatus(r.Context(), chi.URLParam(r, "id"), req.Status, userID); err != nil {
@@ -173,6 +169,10 @@ func (h chainHandler) status(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /chains/{id} [delete]
 func (h chainHandler) delete(w http.ResponseWriter, r *http.Request) {
+	if ok := requireChainInitiator(w, r, h.s, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	if err := h.s.Delete(r.Context(), chi.URLParam(r, "id")); err != nil {
 		writeError(w, err)
 		return

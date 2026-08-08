@@ -39,9 +39,8 @@ func mountSearchRoutes(r chi.Router, s *search.SearchService) {
 // @Failure 500 {object} ErrorResponse
 // @Router /search/chain [get]
 func (h searchHandler) findChain(w http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserIDFromContext(r.Context())
+	userID, ok := actor(w, r)
 	if !ok {
-		writeError(w, service.ErrForbidden)
 		return
 	}
 

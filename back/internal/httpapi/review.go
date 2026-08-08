@@ -43,8 +43,7 @@ func (h reviewHandler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var v domain.Review
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 

@@ -39,8 +39,7 @@ func mountCategoryRoutes(r chi.Router, s service.CategoryService) {
 // @Router /categories [post]
 func (h categoryHandler) create(w http.ResponseWriter, r *http.Request) {
 	var v domain.Category
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	out, e := h.s.Create(r.Context(), &v)
@@ -107,8 +106,7 @@ func (h categoryHandler) subcategories(w http.ResponseWriter, r *http.Request) {
 // @Router /categories/{id} [put]
 func (h categoryHandler) update(w http.ResponseWriter, r *http.Request) {
 	var v domain.Category
-	if decodeJSON(r, &v) != nil {
-		writeError(w, service.ErrInvalidInput)
+	if !decodeBody(w, r, &v) {
 		return
 	}
 	out, e := h.s.Update(r.Context(), chi.URLParam(r, "id"), &v)

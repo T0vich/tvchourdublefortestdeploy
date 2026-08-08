@@ -43,7 +43,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/httpapi.TokenResponse"
+                            "$ref": "#/definitions/httpapi.AuthResponse"
                         }
                     },
                     "400": {
@@ -54,6 +54,43 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Неверный email или пароль",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Профиль владельца токена",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Current user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Customer"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/httpapi.ErrorResponse"
                         }
@@ -95,7 +132,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/httpapi.TokenResponse"
+                            "$ref": "#/definitions/httpapi.AuthResponse"
                         }
                     },
                     "400": {
@@ -2235,6 +2272,17 @@ const docTemplate = `{
                 }
             }
         },
+        "httpapi.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/domain.Customer"
+                }
+            }
+        },
         "httpapi.ChainStatusRequest": {
             "type": "object",
             "properties": {
@@ -2273,17 +2321,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "httpapi.TokenResponse": {
-            "type": "object",
-            "properties": {
-                "customer_id": {
-                    "type": "string"
-                },
-                "token": {
                     "type": "string"
                 }
             }

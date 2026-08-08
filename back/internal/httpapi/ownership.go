@@ -127,3 +127,29 @@ func requireReviewAuthor(
 
 	return true
 }
+
+// requireChainInitiator разрешает действие только инициатору цепочки.
+func requireChainInitiator(
+	w http.ResponseWriter,
+	r *http.Request,
+	chains service.ChainService,
+	chainID string,
+) bool {
+	userID, ok := actor(w, r)
+	if !ok {
+		return false
+	}
+
+	chain, err := chains.GetByID(r.Context(), chainID)
+	if err != nil {
+		writeError(w, err)
+		return false
+	}
+
+	if chain.InitiatorID != userID {
+		writeError(w, service.ErrForbidden)
+		return false
+	}
+
+	return true
+}

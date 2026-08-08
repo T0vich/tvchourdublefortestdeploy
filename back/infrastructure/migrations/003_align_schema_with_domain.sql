@@ -89,3 +89,14 @@ ALTER TABLE wishlists
 -- Холостой UPDATE поднимает триггер и пересобирает search_vector
 -- под новым именем колонки для всех уже лежащих товаров.
 UPDATE products SET title = title;
+
+-- ---------- статусы цепочек ----------
+
+-- В domain.ChainStatus есть значение rejected, но CHECK из 001 допускает
+-- только четыре других: попытка отклонить предложение падала на ограничении.
+DO $$ BEGIN
+    ALTER TABLE chains DROP CONSTRAINT IF EXISTS chains_status_check;
+    ALTER TABLE chains
+        ADD CONSTRAINT chains_status_check
+        CHECK (status IN ('pending', 'active', 'completed', 'cancelled', 'rejected'));
+END $$;

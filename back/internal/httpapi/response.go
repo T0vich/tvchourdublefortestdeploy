@@ -28,8 +28,10 @@ func writeError(w http.ResponseWriter, err error) {
 		writeJSON(w, http.StatusNotFound, ErrorResponse{Error: err.Error()})
 	case errors.Is(err, service.ErrConflict):
 		writeJSON(w, http.StatusConflict, ErrorResponse{Error: err.Error()})
+	case errors.Is(err, service.ErrUnauthorized):
+		writeJSON(w, http.StatusUnauthorized, ErrorResponse{Error: "неверный email или пароль"})
 	case errors.Is(err, service.ErrForbidden):
-		writeJSON(w, http.StatusForbidden, ErrorResponse{Error: err.Error()})
+		writeJSON(w, http.StatusForbidden, ErrorResponse{Error: "недостаточно прав для этого действия"})
 	default:
 		// Незнакомая ошибка — это почти всегда ошибка базы или драйвера.
 		// Её текст содержит имена таблиц, колонок и фрагменты запроса,

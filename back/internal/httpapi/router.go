@@ -28,7 +28,8 @@ func NewRouter(d Dependencies) http.Handler {
 
 	// Middleware
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
+	// middleware.RealIP намеренно не используется: он подменяет r.RemoteAddr
+	// значением из X-Forwarded-For, которое клиент задаёт сам (GHSA-3fxj-6jh8-hvhx).
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(15 * time.Second))
@@ -67,8 +68,8 @@ func NewRouter(d Dependencies) http.Handler {
 		if d.Categories != nil {
 			mountCategoryRoutes(r, d.Categories)
 		}
-		if d.Wishlists != nil {
-			mountWishlistRoutes(r, d.Wishlists)
+		if d.Wishlists != nil && d.Products != nil {
+			mountWishlistRoutes(r, d.Wishlists, d.Products)
 		}
 		if d.Search != nil {
 			mountSearchRoutes(r, d.Search)

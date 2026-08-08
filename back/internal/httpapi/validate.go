@@ -42,13 +42,10 @@ const minPasswordLength = 8
 func validateCredentials(email, password string) map[string]string {
 	fields := make(map[string]string)
 
-	switch {
-	case email == "":
+	if email == "" {
 		fields["email"] = "обязательное поле"
-	default:
-		if _, err := mail.ParseAddress(email); err != nil {
-			fields["email"] = "некорректный адрес электронной почты"
-		}
+	} else if _, err := mail.ParseAddress(email); err != nil {
+		fields["email"] = "некорректный адрес электронной почты"
 	}
 
 	switch {

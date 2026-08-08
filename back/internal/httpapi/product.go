@@ -39,11 +39,21 @@ func mountProductRoutes(r chi.Router, s service.ProductService) {
 // @Failure 500 {object} ErrorResponse
 // @Router /products [post]
 func (h productHandler) create(w http.ResponseWriter, r *http.Request) {
+	userID, ok := actor(w, r)
+	if !ok {
+		return
+	}
+
 	var v domain.CreateProductDTO
 	if decodeJSON(r, &v) != nil {
 		writeError(w, service.ErrInvalidInput)
 		return
 	}
+
+	// Владелец берётся из токена, а не из тела запроса: иначе объявление
+	// можно создать от чужого имени, просто подставив чужой customer_id.
+	v.CustomerID = userID
+
 	out, e := h.s.Create(r.Context(), &v)
 	if e != nil {
 		writeError(w, e)
@@ -87,6 +97,10 @@ func (h productHandler) get(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /products/{id} [patch]
 func (h productHandler) update(w http.ResponseWriter, r *http.Request) {
+	if ok := requireProductOwner(w, r, h.s, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	var v domain.UpdateProductDTO
 	if decodeJSON(r, &v) != nil {
 		writeError(w, service.ErrInvalidInput)
@@ -113,6 +127,10 @@ func (h productHandler) update(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /products/{id} [delete]
 func (h productHandler) delete(w http.ResponseWriter, r *http.Request) {
+	if ok := requireProductOwner(w, r, h.s, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	if e := h.s.Delete(r.Context(), chi.URLParam(r, "id")); e != nil {
 		writeError(w, e)
 		return

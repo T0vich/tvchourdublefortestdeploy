@@ -81,9 +81,10 @@ func (h authHandler) register(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "Login credentials"
-// @Success 200 {object} map[string]string "token"
-// @Failure 400 {object} ErrorResponse "Invalid input"
-// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Success 200 {object} TokenResponse
+// @Failure 400 {object} ErrorResponse "Некорректное тело запроса"
+// @Failure 401 {object} ErrorResponse "Неверный email или пароль"
+// @Failure 500 {object} ErrorResponse
 // @Router /auth/login [post]
 func (h authHandler) login(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
@@ -91,13 +92,15 @@ func (h authHandler) login(w http.ResponseWriter, r *http.Request) {
 		writeError(w, service.ErrInvalidInput)
 		return
 	}
+	// Несуществующий email и неверный пароль отдают одинаковый ответ:
+	// иначе по коду ответа можно перебором узнать, кто зарегистрирован.
 	customer, err := h.customerService.GetByEmail(r.Context(), req.Email)
 	if err != nil {
-		writeError(w, service.ErrInvalidInput)
+		writeError(w, service.ErrUnauthorized)
 		return
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(customer.PasswordHash), []byte(req.Password)); err != nil {
-		writeError(w, service.ErrInvalidInput)
+		writeError(w, service.ErrUnauthorized)
 		return
 	}
 	token, err := auth.GenerateToken(customer.CustomerID)
@@ -105,5 +108,5 @@ func (h authHandler) login(w http.ResponseWriter, r *http.Request) {
 		writeError(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]string{"token": token})
+	writeJSON(w, http.StatusOK, TokenResponse{Token: token, CustomerID: customer.CustomerID})
 }

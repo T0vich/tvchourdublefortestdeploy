@@ -76,10 +76,7 @@ func (s *customerService) Delete(ctx context.Context, id string) error {
 	return normalizeError(s.repo.Delete(ctx, id))
 }
 func (s *customerService) List(ctx context.Context, offset, limit int) ([]domain.Customer, error) {
-	o, l, e := validatePage(offset, limit)
-	if e != nil {
-		return nil, e
-	}
+	o, l := validatePage(offset, limit)
 	v, e := s.repo.List(ctx, o, l)
 	return v, normalizeError(e)
 }

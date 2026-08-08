@@ -48,7 +48,7 @@ func TestRequireUTF8Query(t *testing.T) {
 	t.Run("корректный UTF-8 проходит", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		// %D0%BD%D0%BE%D1%83%D1%82 — "ноут" в UTF-8
-		request := httptest.NewRequest(http.MethodGet, "/products/search?q=%D0%BD%D0%BE%D1%83%D1%82", nil)
+		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/products/search?q=%D0%BD%D0%BE%D1%83%D1%82", nil)
 
 		handler.ServeHTTP(recorder, request)
 
@@ -60,7 +60,7 @@ func TestRequireUTF8Query(t *testing.T) {
 	t.Run("байты CP1251 отклоняются с 422, а не доезжают до базы", func(t *testing.T) {
 		recorder := httptest.NewRecorder()
 		// %ED%EE%F3 — те же "ноу", но в CP1251: некорректная последовательность UTF-8
-		request := httptest.NewRequest(http.MethodGet, "/products/search?q=%ED%EE%F3", nil)
+		request := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "/products/search?q=%ED%EE%F3", nil)
 
 		handler.ServeHTTP(recorder, request)
 

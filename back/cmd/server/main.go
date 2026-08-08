@@ -132,7 +132,7 @@ func connectDB(ctx context.Context) (*pgxpool.Pool, error) {
 
 	config.MaxConns = defaultMaxConns
 	if raw := os.Getenv("DB_MAX_CONNS"); raw != "" {
-		parsed, convErr := strconv.Atoi(raw)
+		parsed, convErr := strconv.ParseInt(raw, 10, 32)
 		if convErr != nil || parsed <= 0 {
 			return nil, errors.New("DB_MAX_CONNS должен быть положительным числом")
 		}

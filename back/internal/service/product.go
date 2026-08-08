@@ -132,10 +132,7 @@ func (s *productService) Delete(ctx context.Context, id string) error {
 
 // List – список продуктов с пагинацией
 func (s *productService) List(ctx context.Context, offset, limit int) ([]domain.Product, error) {
-	o, l, err := validatePage(offset, limit)
-	if err != nil {
-		return nil, err
-	}
+	o, l := validatePage(offset, limit)
 	products, err := s.repo.List(ctx, o, l)
 	if err != nil {
 		return nil, normalizeError(err)
@@ -186,7 +183,7 @@ func blank(s string) bool {
 }
 
 // validatePage – нормализация offset/limit
-func validatePage(offset, limit int) (int, int, error) {
+func validatePage(offset, limit int) (int, int) {
 	if offset < 0 {
 		offset = 0
 	}
@@ -196,7 +193,7 @@ func validatePage(offset, limit int) (int, int, error) {
 	if limit > 100 {
 		limit = 100
 	}
-	return offset, limit, nil
+	return offset, limit
 }
 
 // normalizeError – преобразование ошибок репозитория в доменные ошибки
@@ -214,5 +211,5 @@ func normalizeError(err error) error {
 	// Все остальные ошибки считаем внутренними. Оригинал оборачивается, а не
 	// отбрасывается: errors.Is(err, ErrInternal) продолжает работать, но
 	// причина доезжает до лога — без неё отладка 500-х сводится к угадыванию.
-	return fmt.Errorf("%w: %v", ErrInternal, err)
+	return fmt.Errorf("%w: %w", ErrInternal, err)
 }

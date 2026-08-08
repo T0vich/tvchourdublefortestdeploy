@@ -87,6 +87,10 @@ func (h customerHandler) get(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /customers/{id} [patch]
 func (h customerHandler) update(w http.ResponseWriter, r *http.Request) {
+	if ok := requireSelf(w, r, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	var v domain.UpdateCustomerDTO
 	if decodeJSON(r, &v) != nil {
 		writeError(w, service.ErrInvalidInput)
@@ -113,6 +117,10 @@ func (h customerHandler) update(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /customers/{id} [delete]
 func (h customerHandler) delete(w http.ResponseWriter, r *http.Request) {
+	if ok := requireSelf(w, r, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	if e := h.s.Delete(r.Context(), chi.URLParam(r, "id")); e != nil {
 		writeError(w, e)
 		return

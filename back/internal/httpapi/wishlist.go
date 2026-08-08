@@ -9,14 +9,19 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type wishlistHandler struct{ s service.WishlistService }
+type wishlistHandler struct {
+	s        service.WishlistService
+	products service.ProductService
+}
 
 type OptionRequest struct {
 	CategoryID string `json:"category_id"`
 }
 
-func mountWishlistRoutes(r chi.Router, s service.WishlistService) {
-	h := wishlistHandler{s}
+// Список желаний принадлежит товару, поэтому для проверки прав нужен доступ
+// и к товарам: владелец списка — это владелец товара.
+func mountWishlistRoutes(r chi.Router, s service.WishlistService, products service.ProductService) {
+	h := wishlistHandler{s: s, products: products}
 	r.Route("/wishlists", func(r chi.Router) {
 		// «Что хочу взамен» показывается прямо в карточке товара,
 		// значит должно читаться без токена.
@@ -49,6 +54,12 @@ func (h wishlistHandler) create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, service.ErrInvalidInput)
 		return
 	}
+
+	// Список желаний заводится только к своему товару.
+	if ok := requireProductOwner(w, r, h.products, v.ProductID); !ok {
+		return
+	}
+
 	out, e := h.s.Create(r.Context(), &v)
 	if e != nil {
 		writeError(w, e)
@@ -112,6 +123,10 @@ func (h wishlistHandler) byProduct(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /wishlists/{id} [delete]
 func (h wishlistHandler) delete(w http.ResponseWriter, r *http.Request) {
+	if ok := requireWishlistOwner(w, r, h.s, h.products, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	if e := h.s.Delete(r.Context(), chi.URLParam(r, "id")); e != nil {
 		writeError(w, e)
 		return
@@ -152,6 +167,10 @@ func (h wishlistHandler) options(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /wishlists/{id}/options [post]
 func (h wishlistHandler) addOption(w http.ResponseWriter, r *http.Request) {
+	if ok := requireWishlistOwner(w, r, h.s, h.products, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	var v OptionRequest
 	if decodeJSON(r, &v) != nil {
 		writeError(w, service.ErrInvalidInput)
@@ -178,6 +197,10 @@ func (h wishlistHandler) addOption(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /wishlists/{id}/options/{categoryID} [delete]
 func (h wishlistHandler) removeOption(w http.ResponseWriter, r *http.Request) {
+	if ok := requireWishlistOwner(w, r, h.s, h.products, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	if e := h.s.RemoveCategoryOption(r.Context(), chi.URLParam(r, "id"), chi.URLParam(r, "categoryID")); e != nil {
 		writeError(w, e)
 		return

@@ -181,7 +181,7 @@ func (r *chainRepository) CompleteExchange(ctx context.Context, chainID string) 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// 1. Получить цепочку
 	var chain domain.Chain

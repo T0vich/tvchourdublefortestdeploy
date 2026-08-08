@@ -55,10 +55,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("не удалось подключиться к базе: %s", err)
 	}
-	defer conn.Close(context.Background())
+	defer func() { _ = conn.Close(context.Background()) }()
 
 	for _, file := range files {
-		body, readErr := os.ReadFile(file)
+		body, readErr := os.ReadFile(file) //nolint:gosec // путь задаёт оператор, это CLI для миграций
 		if readErr != nil {
 			log.Fatalf("не удалось прочитать %s: %s", file, readErr)
 		}

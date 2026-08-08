@@ -37,11 +37,25 @@ func mountReviewRoutes(r chi.Router, s service.ReviewService) {
 // @Failure 500 {object} ErrorResponse
 // @Router /reviews [post]
 func (h reviewHandler) create(w http.ResponseWriter, r *http.Request) {
+	userID, ok := actor(w, r)
+	if !ok {
+		return
+	}
+
 	var v domain.Review
 	if decodeJSON(r, &v) != nil {
 		writeError(w, service.ErrInvalidInput)
 		return
 	}
+
+	// Автор отзыва — владелец токена. Иначе отзыв можно оставить от чужого
+	// имени, подставив нужный from_customer_id в тело запроса.
+	v.FromCustomerID = userID
+	if v.ToCustomerID == userID {
+		writeError(w, service.ErrInvalidInput)
+		return
+	}
+
 	out, e := h.s.Create(r.Context(), &v)
 	if e != nil {
 		writeError(w, e)
@@ -84,6 +98,10 @@ func (h reviewHandler) get(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} ErrorResponse
 // @Router /reviews/{id} [delete]
 func (h reviewHandler) delete(w http.ResponseWriter, r *http.Request) {
+	if ok := requireReviewAuthor(w, r, h.s, chi.URLParam(r, "id")); !ok {
+		return
+	}
+
 	if e := h.s.Delete(r.Context(), chi.URLParam(r, "id")); e != nil {
 		writeError(w, e)
 		return

@@ -1,0 +1,13 @@
+# Единые переводы строк во всём репозитории.
+#
+# Без этого Windows-чекаут приносит CRLF, и gofmt через golangci-lint считает
+# файлы неотформатированными, хотя в самом репозитории лежит LF. На Linux в CI
+# при этом всё зелено — расхождение ловится только локально и сбивает с толку.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text eol=lf

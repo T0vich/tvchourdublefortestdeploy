@@ -1,0 +1,62 @@
+version: "2"
+
+run:
+  timeout: 5m
+  # Модуль Go лежит в back/, а конфиг по условию кейса — в корне репозитория.
+  relative-path-mode: gomod
+
+linters:
+  default: standard
+  enable:
+    # rowserrcheck ловит ровно ту ошибку, из-за которой каталог категорий
+    # молча отдавал пустой список: цикл по rows без проверки rows.Err().
+    - rowserrcheck
+    - sqlclosecheck
+    - bodyclose
+    - noctx
+    - errorlint
+    - gosec
+    - misspell
+    - revive
+    - unconvert
+    - unparam
+    - nilerr
+    - contextcheck
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+    gosec:
+      excludes:
+        # G104 дублирует errcheck.
+        - G104
+        # G706 срабатывает на любой log.Printf с переменной; в сервисе и CLI
+        # это обычное логирование, а не запись пользовательского ввода в лог.
+        - G706
+    misspell:
+      locale: US
+      ignore-rules:
+        # cancelled — не опечатка, а значение статуса в domain.ChainStatus
+        # и в CHECK-ограничении таблицы chains. Переименование сломает базу.
+        - cancelled
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+
+  exclusions:
+    generated: lax
+    rules:
+      # Сгенерированная swag-ом спецификация не наша и не форматируется руками.
+      - path: docs/
+        linters:
+          - all
+      - path: _test\.go$
+        linters:
+          - gosec
+          - unparam
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

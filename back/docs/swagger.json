@@ -34,22 +34,25 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "token",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/httpapi.TokenResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid input",
+                        "description": "Некорректное тело запроса",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Неверный email или пароль",
                         "schema": {
                             "$ref": "#/definitions/httpapi.ErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/httpapi.ErrorResponse"
                         }

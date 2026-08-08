@@ -64,6 +64,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/register": {
+            "post": {
+                "description": "Создаёт пользователя и сразу возвращает JWT — отдельный вход после регистрации не нужен",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "Email и пароль (пароль от 8 символов)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateCustomerDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Email уже занят",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/categories": {
             "get": {
                 "description": "List all categories",
@@ -1154,7 +1206,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "Soft delete product (set is_active=false)",
+                "description": "Soft delete product (set status to archived)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1994,7 +2046,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "customer_id",
-                "name"
+                "title"
             ],
             "properties": {
                 "category_id": {
@@ -2006,7 +2058,19 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "name": {
+                "image": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProductStatus"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -2043,19 +2107,43 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
+                "image": {
                     "type": "string"
                 },
+                "location": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
                 "product_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProductStatus"
+                },
+                "title": {
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
+        },
+        "domain.ProductStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "reserved",
+                "exchanged",
+                "archived"
+            ],
+            "x-enum-varnames": [
+                "ProductActive",
+                "ProductReserved",
+                "ProductExchanged",
+                "ProductArchived"
+            ]
         },
         "domain.Review": {
             "type": "object",
@@ -2107,10 +2195,19 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
+                "image": {
+                    "type": "string"
                 },
-                "name": {
+                "location": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProductStatus"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -2148,6 +2245,13 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "type": "string"
+                },
+                "fields": {
+                    "description": "Fields заполняется только для ошибок валидации: \"поле -\u003e причина\".",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2169,6 +2273,24 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "httpapi.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -2176,8 +2298,8 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/",
+	Host:             "",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Trade Chain API",
 	Description:      "API для обмена товарами",

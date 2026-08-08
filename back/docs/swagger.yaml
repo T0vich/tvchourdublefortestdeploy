@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1
 definitions:
   domain.Category:
     properties:
@@ -77,11 +77,19 @@ definitions:
         type: string
       description:
         type: string
-      name:
+      image:
+        type: string
+      location:
+        type: string
+      price:
+        type: integer
+      status:
+        $ref: '#/definitions/domain.ProductStatus'
+      title:
         type: string
     required:
     - customer_id
-    - name
+    - title
     type: object
   domain.Customer:
     properties:
@@ -104,15 +112,33 @@ definitions:
         type: string
       description:
         type: string
-      is_active:
-        type: boolean
-      name:
+      image:
         type: string
+      location:
+        type: string
+      price:
+        type: integer
       product_id:
+        type: string
+      status:
+        $ref: '#/definitions/domain.ProductStatus'
+      title:
         type: string
       updated_at:
         type: string
     type: object
+  domain.ProductStatus:
+    enum:
+    - active
+    - reserved
+    - exchanged
+    - archived
+    type: string
+    x-enum-varnames:
+    - ProductActive
+    - ProductReserved
+    - ProductExchanged
+    - ProductArchived
   domain.Review:
     properties:
       comment:
@@ -146,9 +172,15 @@ definitions:
         type: string
       description:
         type: string
-      is_active:
-        type: boolean
-      name:
+      image:
+        type: string
+      location:
+        type: string
+      price:
+        type: integer
+      status:
+        $ref: '#/definitions/domain.ProductStatus'
+      title:
         type: string
     type: object
   domain.Wishlist:
@@ -173,6 +205,11 @@ definitions:
     properties:
       error:
         type: string
+      fields:
+        additionalProperties:
+          type: string
+        description: 'Fields заполняется только для ошибок валидации: "поле -> причина".'
+        type: object
     type: object
   httpapi.LoginRequest:
     properties:
@@ -186,7 +223,13 @@ definitions:
       category_id:
         type: string
     type: object
-host: localhost:8080
+  httpapi.TokenResponse:
+    properties:
+      customer_id:
+        type: string
+      token:
+        type: string
+    type: object
 info:
   contact: {}
   description: API для обмена товарами
@@ -223,6 +266,41 @@ paths:
           schema:
             $ref: '#/definitions/httpapi.ErrorResponse'
       summary: Login user
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт пользователя и сразу возвращает JWT — отдельный вход после
+        регистрации не нужен
+      parameters:
+      - description: Email и пароль (пароль от 8 символов)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateCustomerDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpapi.TokenResponse'
+        "400":
+          description: Некорректные данные
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "409":
+          description: Email уже занят
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      summary: Register user
       tags:
       - auth
   /categories:
@@ -852,7 +930,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Soft delete product (set is_active=false)
+      description: Soft delete product (set status to archived)
       parameters:
       - description: Product ID
         in: path
@@ -1435,4 +1513,9 @@ paths:
       summary: Get wishlist by product
       tags:
       - wishlists
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -6,8 +6,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8080",
-    "basePath": "/",
+    "basePath": "/api/v1",
     "paths": {
         "/auth/login": {
             "post": {
@@ -51,6 +50,58 @@
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Создаёт пользователя и сразу возвращает JWT — отдельный вход после регистрации не нужен",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "Email и пароль (пароль от 8 символов)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.CreateCustomerDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Email уже занят",
+                        "schema": {
+                            "$ref": "#/definitions/httpapi.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/httpapi.ErrorResponse"
                         }
@@ -1148,7 +1199,7 @@
                 }
             },
             "delete": {
-                "description": "Soft delete product (set is_active=false)",
+                "description": "Soft delete product (set status to archived)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1988,7 +2039,7 @@
             "type": "object",
             "required": [
                 "customer_id",
-                "name"
+                "title"
             ],
             "properties": {
                 "category_id": {
@@ -2000,7 +2051,19 @@
                 "description": {
                     "type": "string"
                 },
-                "name": {
+                "image": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProductStatus"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -2037,19 +2100,43 @@
                 "description": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "name": {
+                "image": {
                     "type": "string"
                 },
+                "location": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
                 "product_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProductStatus"
+                },
+                "title": {
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
+        },
+        "domain.ProductStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "reserved",
+                "exchanged",
+                "archived"
+            ],
+            "x-enum-varnames": [
+                "ProductActive",
+                "ProductReserved",
+                "ProductExchanged",
+                "ProductArchived"
+            ]
         },
         "domain.Review": {
             "type": "object",
@@ -2101,10 +2188,19 @@
                 "description": {
                     "type": "string"
                 },
-                "is_active": {
-                    "type": "boolean"
+                "image": {
+                    "type": "string"
                 },
-                "name": {
+                "location": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.ProductStatus"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -2142,6 +2238,13 @@
             "properties": {
                 "error": {
                     "type": "string"
+                },
+                "fields": {
+                    "description": "Fields заполняется только для ошибок валидации: \"поле -\u003e причина\".",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2163,6 +2266,24 @@
                     "type": "string"
                 }
             }
+        },
+        "httpapi.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "customer_id": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }
